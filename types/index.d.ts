@@ -98,10 +98,7 @@ export interface Event {
   params?: Record<string, any>;
 }
 
-export type PathResolver = (
-  value: object,
-  path: string,
-) => any;
+export type PathResolver = (value: object, path: string) => any;
 
 export type EventHandler = (
   event: Event,
@@ -111,6 +108,7 @@ export type EventHandler = (
 
 export interface RuleProperties {
   conditions: TopLevelCondition;
+  branch?: TopLevelCondition;
   event: Event;
   name?: string;
   priority?: number;
@@ -128,12 +126,14 @@ export interface RuleResult {
   event?: Event;
   priority?: number;
   result: any;
+  branch?: TopLevelCondition;
 }
 
 export class Rule implements RuleProperties {
   constructor(ruleProps: RuleProperties | string);
   name: string;
   conditions: TopLevelCondition;
+  branch: TopLevelCondition;
   event: Event;
   priority: number;
   setConditions(conditions: TopLevelCondition): this;
