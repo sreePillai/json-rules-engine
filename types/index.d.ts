@@ -111,6 +111,7 @@ export type EventHandler = (
 
 export interface RuleProperties {
   conditions: TopLevelCondition;
+  branch?: TopLevelCondition;
   event: Event;
   name?: string;
   priority?: number;
@@ -125,6 +126,7 @@ export type RuleSerializable = Pick<
 export interface RuleResult {
   name: string;
   conditions: TopLevelCondition;
+  branch?: TopLevelCondition;
   event?: Event;
   priority?: number;
   result: any;
@@ -134,6 +136,7 @@ export class Rule implements RuleProperties {
   constructor(ruleProps: RuleProperties | string);
   name: string;
   conditions: TopLevelCondition;
+  branch?: TopLevelCondition;
   event: Event;
   priority: number;
   setConditions(conditions: TopLevelCondition): this;

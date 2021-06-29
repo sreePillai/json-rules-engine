@@ -213,6 +213,8 @@ class Engine extends EventEmitter {
       }
       return rule.evaluate(almanac).then((ruleResult) => {
         debug(`engine::run ruleResult:${ruleResult.result}`)
+        // skip if branch result is not satisfied
+        if (ruleResult.skip) return;
         almanac.addResult(ruleResult)
         if (ruleResult.result) {
           almanac.addEvent(ruleResult.event, 'success')

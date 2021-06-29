@@ -15,6 +15,7 @@ class Rule extends EventEmitter {
    * @param {string} options.event.params - parameters to pass to the event listener
    * @param {Object} options.conditions - conditions to evaluate when processing this rule
    * @param {any} options.name - identifier for a particular rule, particularly valuable in RuleResult output
+   * @param {Object} options.branch - conditions to evaluate before processing this rule
    * @return {Rule} instance
    */
   constructor (options) {
@@ -33,6 +34,9 @@ class Rule extends EventEmitter {
     }
     if (options && (options.name || options.name === 0)) {
       this.setName(options.name)
+    }
+    if (options && options.branch) {
+      this.setBranch(options.branch);
     }
 
     const priority = (options && options.priority) || 1
@@ -76,6 +80,23 @@ class Rule extends EventEmitter {
     this.conditions = new Condition(conditions)
     return this
   }
+
+    /**
+   * Sets the branch conditions to run before evaluating the rule.
+   * @param {object} conditions - conditions, root element must be a boolean operator
+   */
+     setBranch(conditions) {
+      if (
+        !Object.prototype.hasOwnProperty.call(conditions, "all") &&
+        !Object.prototype.hasOwnProperty.call(conditions, "any")
+      ) {
+        throw new Error(
+          '"Branch" root must contain a single instance of "all" or "any"'
+        );
+      }
+      this.branch = new Condition(conditions);
+      return this;
+    }
 
   /**
    * Sets the event to emit when the conditions evaluate truthy
@@ -180,7 +201,7 @@ class Rule extends EventEmitter {
    * @return {Promise(RuleResult)} rule evaluation result
    */
   evaluate (almanac) {
-    const ruleResult = new RuleResult(this.conditions, this.ruleEvent, this.priority, this.name)
+    const ruleResult = new RuleResult(this.conditions, this.ruleEvent, this.priority, this.name, this.branch)
 
     /**
      * Evaluates the rule conditions
@@ -302,12 +323,41 @@ class Rule extends EventEmitter {
       return this.emitAsync(event, ruleResult.event, almanac, ruleResult).then(() => ruleResult)
     }
 
-    if (ruleResult.conditions.any) {
-      return any(ruleResult.conditions.any)
-        .then(result => processResult(result))
+    const branch = (branch) => {
+      return (branch.any ? any(branch.any) : all(branch.all)).then((result) => {
+        return processBranchResult(result);
+      });
+    };
+
+    const processBranchResult = (result) => {
+      // if branch result is FALSE, skip the conditions, else evaluate conditions
+      if (result === true) {
+        if (ruleResult.conditions.any) {
+          return any(ruleResult.conditions.any).then((result) =>
+            processResult(result)
+          );
+        } else {
+          return all(ruleResult.conditions.all).then((result) =>
+            processResult(result)
+          );
+        }
+      } else {
+        ruleResult.skip = true;
+        return ruleResult;
+      }
+    };
+
+    if (ruleResult.branch) {
+      // evaluate branch result first if branch exists
+      return branch(ruleResult.branch);
     } else {
-      return all(ruleResult.conditions.all)
-        .then(result => processResult(result))
+        if (ruleResult.conditions.any) {
+        return any(ruleResult.conditions.any)
+          .then(result => processResult(result))
+      } else {
+        return all(ruleResult.conditions.all)
+          .then(result => processResult(result))
+      }
     }
   }
 }

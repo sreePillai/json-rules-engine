@@ -23,6 +23,11 @@ module.exports = (options) => {
         currency: 'points',
         pointCap: 1000
       }
-    }
+    },
+    ...(options.branch
+      ? {
+          branch: options.branch,
+        }
+      : null),
   }
 }
