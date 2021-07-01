@@ -5,3 +5,4 @@ types/*.test-d.ts
 test/
 examples/
 docs/
+dist/
