@@ -26,7 +26,6 @@
   "standard": {
     "parser": "babel-eslint",
     "ignore": [
-      "/dist",
       "/examples/node_modules"
     ],
     "globals": [
