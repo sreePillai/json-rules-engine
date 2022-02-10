@@ -1,5 +1,10 @@
 {
+  "scope": "onsemi",
   "name": "json-rules-engine",
+  "private": true,
+  "publishConfig": {
+    "registry": "http://nexus.devops.onsemi.com/repository/npm-hosted/"
+  },
   "version": "6.1.0",
   "description": "Rules Engine expressed in simple json",
   "main": "dist/index.js",
